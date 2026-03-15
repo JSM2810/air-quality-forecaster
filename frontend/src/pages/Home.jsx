@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import AQICard from "../components/AQICard";
-import ForecastChart from "../components/ForecastChart";
+import Forecastchart from "../components/Forecastchart";
 import Map from "../components/Map";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
