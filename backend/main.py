@@ -45,3 +45,8 @@ app.include_router(weather_router, prefix="/api/weather")
 @app.get("/")
 def root():
     return {"message": "Air Quality Forecaster API is running!"}
+
+allow_origins=[
+    "http://localhost:5173",
+    "https://air-quality-forecaster-rjof.vercel.app",
+],
