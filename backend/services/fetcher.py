@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 import time
 import logging
 
+import os
+
+DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:moksha123@localhost/air_quality")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -91,12 +95,7 @@ def fetch_and_store_historical():
     print(f"Fetching from: {date_from_str}")
     print(f"Fetching to:   {date_to_str}\n")
 
-    conn = psycopg2.connect(
-        host="localhost",
-        database="air_quality",
-        user="postgres",
-        password="moksha123"
-    )
+    conn = psycopg2.connect(DB_URL)
     cursor = conn.cursor()
 
     try:
@@ -161,11 +160,7 @@ async def fetch_and_store_aqi():
     """Scheduler function — fetches latest data for all cities"""
     print("Scheduler triggered! Fetching latest AQI data for all cities...\n")
 
-    conn = psycopg2.connect(
-        host="localhost",
-        database="air_quality",
-        user="postgres",
-        password="moksha123"
+    conn = psycopg2.connect(DB_URL
     )
     cursor = conn.cursor()
 
