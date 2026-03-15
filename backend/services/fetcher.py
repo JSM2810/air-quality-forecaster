@@ -95,7 +95,7 @@ def fetch_and_store_historical():
     print(f"Fetching from: {date_from_str}")
     print(f"Fetching to:   {date_to_str}\n")
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(dsn=DB_URL)
     cursor = conn.cursor()
 
     try:
@@ -160,7 +160,7 @@ async def fetch_and_store_aqi():
     """Scheduler function — fetches latest data for all cities"""
     print("Scheduler triggered! Fetching latest AQI data for all cities...\n")
 
-    conn = psycopg2.connect(DB_URL
+    conn = psycopg2.connect(dsn=DB_URL
     )
     cursor = conn.cursor()
 
