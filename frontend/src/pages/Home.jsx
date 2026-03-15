@@ -2,15 +2,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import AQICard from "../components/AQICard";
-import Forecastchart from "../components/Forecastchart";
+import ForecastChart from "../components/ForecastChart";
 import Map from "../components/Map";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from "recharts";
 
-const API_BASE = "http://localhost:8000";
-
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const fadeIn = `
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
