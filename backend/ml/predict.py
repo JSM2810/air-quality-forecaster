@@ -4,29 +4,23 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 import psycopg2
-import urllib.parse as urlparse
 from psycopg2.extras import execute_values
 from sqlalchemy import create_engine, text
-import dotenv
 
-dotenv.load_dotenv()
+DB_PASSWORD = "moksha123"
+DB_NAME     = "air_quality"
+DB_USER     = "postgres"
+DB_HOST     = "localhost"
+DB_PORT     = 5432
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable not set!")
-
-# SQLAlchemy URL
-DB_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://")
-
-# psycopg2 direct config
-_url = urlparse.urlparse(DATABASE_URL)
 DB_CONFIG = {
-    "dbname":   _url.path[1:],
-    "user":     _url.username,
-    "password": _url.password,
-    "host":     _url.hostname,
-    "port":     _url.port,
+    "dbname":   DB_NAME,
+    "user":     DB_USER,
+    "password": DB_PASSWORD,
+    "host":     DB_HOST,
+    "port":     DB_PORT,
 }
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
@@ -113,6 +107,7 @@ def run_forecast(model, features: list, wide_df: pd.DataFrame) -> list:
     print(f"\n  Seeding with {len(recent_aqi)} AQI values")
     print(f"  Last timestamp : {last_time}")
     print(f"  Last known AQI : {recent_aqi[-1]:.2f}")
+    print()
 
     for h in range(1, FORECAST_HOURS + 1):
         future_time = last_time + timedelta(hours=h)
@@ -177,12 +172,12 @@ def store_forecasts(city: str, lat: float, lon: float, forecasts: list):
         conn.close()
 
 def main():
-    print("\n AQI Forecaster — Render Deploy")
+    print("\n AQI Forecaster — Phase 6 (SQLAlchemy Fix)")
     print("=" * 52)
 
     model, features = load_model()
     engine = create_engine(DB_URL)
-    print(" Connected to Neon PostgreSQL\n")
+    print(" Connected to PostgreSQL\n")
 
     cities = fetch_cities(engine)
     if not cities:
