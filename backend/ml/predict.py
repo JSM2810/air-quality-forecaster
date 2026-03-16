@@ -4,23 +4,29 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 import psycopg2
+import urllib.parse as urlparse
 from psycopg2.extras import execute_values
 from sqlalchemy import create_engine, text
+import dotenv
 
-DB_PASSWORD = "moksha123"  
-DB_NAME     = "air_quality"
-DB_USER     = "postgres"
-DB_HOST     = "localhost"
-DB_PORT     = 5432
+dotenv.load_dotenv()
 
-DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set!")
+
+# SQLAlchemy URL
+DB_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://")
+
+# psycopg2 direct config
+_url = urlparse.urlparse(DATABASE_URL)
 DB_CONFIG = {
-    "dbname":   DB_NAME,
-    "user":     DB_USER,
-    "password": DB_PASSWORD,
-    "host":     DB_HOST,
-    "port":     DB_PORT,
+    "dbname":   _url.path[1:],
+    "user":     _url.username,
+    "password": _url.password,
+    "host":     _url.host,
+    "port":     _url.port,
 }
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
@@ -87,10 +93,10 @@ def fetch_wide_readings(engine, city: str) -> pd.DataFrame:
     wide.columns.name = None
     wide = wide.sort_values("measured_at").reset_index(drop=True)
 
-    print(f"  📐 Wide shape: {wide.shape} — {len(wide)} timestamps × {len(wide.columns)} columns")
+    print(f"  Wide shape: {wide.shape} — {len(wide)} timestamps × {len(wide.columns)} columns")
 
     if "pm25" not in wide.columns:
-        print("  ❌ pm25 column missing after pivot! Cannot compute AQI.")
+        print("  pm25 column missing after pivot! Cannot compute AQI.")
         return pd.DataFrame()
 
     wide["aqi_value"] = wide["pm25"].apply(pm25_to_aqi)
@@ -107,7 +113,6 @@ def run_forecast(model, features: list, wide_df: pd.DataFrame) -> list:
     print(f"\n  Seeding with {len(recent_aqi)} AQI values")
     print(f"  Last timestamp : {last_time}")
     print(f"  Last known AQI : {recent_aqi[-1]:.2f}")
-    print()
 
     for h in range(1, FORECAST_HOURS + 1):
         future_time = last_time + timedelta(hours=h)
@@ -121,18 +126,15 @@ def run_forecast(model, features: list, wide_df: pd.DataFrame) -> list:
             "so2":              last_row.get("so2", 0),
             "co":               last_row.get("co", 0),
             "o3":               last_row.get("o3", 0),
-            # Weather (carry forward)
             "temperature":      last_row.get("temperature", 0),
             "relativehumidity": last_row.get("relativehumidity", 0),
             "wind_speed":       last_row.get("wind_speed", 0),
             "wind_direction":   last_row.get("wind_direction", 0),
-            # Time features
             "hour":      future_time.hour,
             "day":       future_time.day,
             "month":     future_time.month,
             "weekday":   future_time.weekday(),
             "is_weekend": int(future_time.weekday() >= 5),
-            # AQI lag features (rolling — updated each step)
             "aqi_lag_1h":       recent_aqi[-1]  if len(recent_aqi) >= 1  else 0,
             "aqi_lag_3h":       recent_aqi[-3]  if len(recent_aqi) >= 3  else 0,
             "aqi_lag_24h":      recent_aqi[-24] if len(recent_aqi) >= 24 else recent_aqi[0],
@@ -175,12 +177,12 @@ def store_forecasts(city: str, lat: float, lon: float, forecasts: list):
         conn.close()
 
 def main():
-    print("\n AQI Forecaster — Phase 6 (SQLAlchemy Fix)")
+    print("\n AQI Forecaster — Render Deploy")
     print("=" * 52)
 
     model, features = load_model()
     engine = create_engine(DB_URL)
-    print(" Connected to PostgreSQL\n")
+    print(" Connected to Neon PostgreSQL\n")
 
     cities = fetch_cities(engine)
     if not cities:
