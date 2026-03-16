@@ -24,7 +24,7 @@ DB_CONFIG = {
 }
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
-FEATURES_PATH = "backend/ml/features.pkl"
+FEATURES_PATH = os.path.join(os.path.dirname(__file__), "features.pkl")
 FORECAST_HOURS = 24
 
 def pm25_to_aqi(pm25):
