@@ -1,4 +1,5 @@
 import pickle
+import os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta, timezone
@@ -22,7 +23,7 @@ DB_CONFIG = {
     "port":     DB_PORT,
 }
 
-MODEL_PATH    = "backend/ml/model.pkl"
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
 FEATURES_PATH = "backend/ml/features.pkl"
 FORECAST_HOURS = 24
 
