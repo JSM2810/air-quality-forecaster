@@ -136,7 +136,7 @@ def run_predict_script():
     """Runs predict.py as a subprocess."""
     import subprocess
     result = subprocess.run(
-        ["python", "backend/ml/predict.py"],
+        ["python", "ml/predict.py"],
         capture_output=True,
         text=True
     )
